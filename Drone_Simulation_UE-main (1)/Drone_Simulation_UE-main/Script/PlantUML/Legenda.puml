@@ -1,0 +1,20 @@
+@startuml Legenda
+title Legenda
+skinparam TitleFontName Calibri
+skinparam TitleFontSize 40
+skinparam ClassBackgroundColor lightcyan/LightGoldenRodYellow
+
+class Legend <<(L,#eb9234)>> {
+    ==**(Variables)**==
+    ~PackageProtectedField
+    +PublicVariable
+    #ProtectedVariable
+    -PrivateVariable
+    ==**(Events & Methods)**==
+    ~LocalInherentEvent()
+    #LocalEvent/Method()
+    -LocalPrivateEvent/Method()
+    +PublicMethod()
+}
+
+@enduml

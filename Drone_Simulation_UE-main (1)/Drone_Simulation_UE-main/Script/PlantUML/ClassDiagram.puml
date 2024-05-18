@@ -1,0 +1,415 @@
+@startuml Klasse Diagram
+title Klasse Diagram
+skinparam TitleFontName Calibri
+skinparam TitleFontSize 40
+skinparam ClassBackgroundColor lightcyan/LightGoldenRodYellow
+skinparam defaultFontColor black
+
+
+' (Drones)=======================================
+Abstract class Drone_Class
+{
+    ==(Variables)==
+    ..(Editor)..
+    + Max Thrust: Float
+    + Max AscendSpeed cm/s: Float
+    + Max DescendSpeed cm/s: Float
+    + Max Angular Speed: Float
+    + Max Tilt Angle: Float
+    + Maximum Altitude: Float
+
+    + PitchRoll PID: Vector
+    + Altitude PID: Vector
+    + Yaw PID: Vector
+
+    + Detection Sphere Radius: Float
+
+    ..(BP)..
+    + VerticalSpeed: Float
+    + HorizontalSpeed: Float
+    + HeightFromFloor: Float
+
+    - Next Cam: Int
+    - Weight: Float
+    - DesiredPosition: Vector
+    ..
+    - DesiredAltitude: Float
+    - AltitudeStopHeight: Float
+    - AltitudeControlIntegral: Float
+    - AltitudeControlErrorPrior: Float
+    ..
+    - DesiredPitchAngle: Float
+    - PitchIntegral: Float
+    - PitchErrorPrior: Float
+    ..
+    - DesiredRollAngle: Float
+    - RollIntegral: Float
+    - RollErrorPrior: Float
+    ..
+    - DesiredYawRotation: Float
+    - YawStopRotation: Float
+    - YawIntegral: Float
+    - YawErrorPrior: Float
+    ..
+    - ThrustHistory: Debug Float History
+    - PitchHistory: Debug Float History
+    - YawHistory: Debug Float History
+    ..
+    + Drone_HUD: Drone HUD BP
+    + Pause_HUD: Pause Menu
+    ==(Events)==
+    ~ Event BeginPlay()
+    ~ Event Tick()
+
+    # InputAction OpenMenu(): Void
+    # InputAction CameraLockToggle(): Void
+    # InputAction SwitchCamera(): Void
+    ..(Key Events)..
+    # R Key -> Restart()
+    # T Key -> TestKey()
+    # Hyphen(-) -> ZoomOutMiniMap()
+    # Equals(=) -> ZoomInMiniMap()
+    ==(Functions)==
+    - HandleThrottle(DeltaTime: Float): Void
+    - HandlePitch(DeltaTime: Float): Void
+    - HandleRoll(DeltaTime: Float): Void
+    - HandleYaw(DeltaTime: Float): Void
+    ..
+    - Thrust Controller(DeltaTime: Float): (Debug Float Value)
+    - Pitch Controller(DeltaTime: Float): (Debug Float Value)
+    - Roll Controller(DeltaTime: Float): (Debug Float Value)
+    - Yaw Controller(DeltaTime: Float): (Debug Float Value)
+    ..Functional..
+    - SetHeightFromFloor(): Void
+    - Set Speed Variables(): Void
+    ..Debug..
+    - DrawDebugForce(Force Location: Vector: Force Amount: Vector): Void
+    ==(Viewport)==
+    + DroneBody: StaticMesh
+    + Up: ArrowComponent
+    + |  Forward: ArrowComponent
+    + SpringArm TPV: SpringArm Component
+    + |  TPV: Camera Component
+    + SpringArm FPV_Gimbal: SpringArm Component
+    + |  FPV: Camera Component
+    + MinimapArm: SpringArm Component
+    + |  Mini-Map Scene Capture: Scene Capture Component 2D
+
+}
+
+Abstract class Mini_Drone <<Drone_Class>> extends Drone_Class
+{
+    ==(Viewport)==
+    + DroneBody; StaticMesh
+    + | PropJoint_back_right: Physics Constraint Component
+    + | -  prop_back_right: StaticMesh
+    + | PropJoint_back_left: Physics Constraint Component
+    + | -  prop_back_left: StaticMesh
+    + | PropJoint_front_left: Physics Constraint Component
+    + | -  prop_front_left: StaticMesh
+    + | PropJoint_front_right: Physics Constraint Component
+    + | -  prop_front_right: StaticMesh
+
+}
+
+Abstract class Drone_#n <<Drone_Class>> extends Drone_Class
+{
+    ==(Viewport)==
+    + DroneBody; StaticMesh
+    + | Components...
+
+}
+
+Class PID_Function_Library <<(F,#9c74b3) Blueprint Function Library>>
+{
+    ==(Functions)==
+    + PID_Calculation_BP(
+    DeltaTime:Float
+    P: Float, I: Float, D: Float
+    Bias: Float
+    CurrentValue: Float
+    DesiredValue: Float
+    Integral: &Float
+    ErrorPrior: &Float): Float
+    + PID_Calculation_Rotation_BP(
+    DeltaTime:Float
+    P: Float,I: Float, D: Float
+    Bias: Float
+    CurrentValue: Float
+    DesiredValue: Float
+    Integral: &Float
+    ErrorPrior: &Float): Float
+}
+' ===============================================
+
+
+' newpage
+' skinparam ClassBackgroundColor lightcyan/LightGoldenRodYellow
+
+Class Wind_Volume <<AActor>>
+{
+    ==(Variables)==
+    ..(Editor)..
+    + Wind_Speed: Float
+    + Color: LinearColor
+    ..(BP)..
+    + Wind_Enabled: Bool
+    ==(Events)==
+    ~ Event BeginPlay()
+    ~ Event Tick()
+
+    # Event ActorBeginOverlap()
+    # Event ActorEndOverlap()
+    ==(Viewport)==
+    + Cube: StaticMesh
+    + P_Wind: Niagara particle System Component
+    + Wind_Direction: Arrow Component
+    + Box: Box Collision
+}
+
+' ===============================================
+
+
+' (Sequencer)====================================
+Class Module_Sequencer <<AActor>>
+{
+    ==(Variables)==
+    ..(Editor)..
+    + Module_Order_List : Array<ModuleOrder>
+    + Start_Message_List: Array<Message_Structure>
+    ..(BP)..
+    # Module_Order_Array: Array<Base_Module>
+    # Message_Order_Array: Array<Message_Structure>
+
+    + Drone_Class: Drone_Class
+
+    - Training_Index: Int
+    - Completed_Modules: Int
+    - ModulesActive: Bool
+    - Difficulty: Int
+
+    - Hit_Counter: Int
+    - Max_Hits: Int
+    - Hit_Delay: Float
+    - BlockHits: Bool
+
+    - Timer_Handle: Timer_Handle
+
+    # Level_State: Enum<Level_State>
+    ==(Events)==
+    ~ Event BeginPlay()
+    ~ Event Tick()
+
+    {Abstract} # Drone_Class->OnDroneHit()
+    - TimerEnded(): Void
+    - Level_Complete(): Void
+    ..Start Message..
+    - Open_StartMessage(): Void
+    {Abstract} # Start_Message_Widget->StartButtonClicked()
+    ..Modules..
+
+    {Abstract} # Base_Module->Complete_Module()->Check_Modules(): Void
+    ==(Functions)==
+    - Set_Level_Timer(Int:Difficulty, Float:Time): Timer_Handle
+    ..Module order..
+    - Is_level_Completed(): Bool
+    - Get_Current_Module(): Base_Module
+    - Set_UI_Elements_to_new_current_Module(): Void
+    - Set_All_but_current_Module_Hidden(): Void
+    - Set_Completed_Level_UI_Text(): Void
+    - Set_Completed_Modules(): Void
+    ..Functional..
+    - Hide_All_Modules(): Void
+    - Parse_Level_Options(): Void
+    - Message_Struct_Equal(Message_Structure,
+    Message_Structure): Bool
+    ==(Viewport)==
+    + Module_Sequencer_Text: Text Render Component
+}
+
+
+' (Structs and datatypes)========================
+Struct ModuleOrder
+{
+    + LevelTime: Float
+    + Module_And_Message_Order: List<Module_And_Message>
+}
+
+Struct Module_And_Message
+{
+    + Module: Base_Module
+    + Message: Message_Structure
+}
+
+Struct Message_Structure
+{
+    + TitleText: Text
+    + Image: Texture2D
+    + MessageText: Text
+}
+
+Enum Level_State
+{
+    + Pre-Level
+    + Level in progress
+    + Level Failed
+    + Level Completed
+}
+
+ModuleOrder "1" *-down- "1..*" Module_And_Message : contains
+Module_And_Message "1" o-down- "1" Message_Structure : contains
+Message_Structure "*"-left- "*" MessageWidgets: Used
+
+Base_Module "1" -left-o "1" Module_And_Message : contains
+
+
+
+' (Modules)======================================
+
+Abstract Base_Module << (M,#FF7700) AActor>>
+{
+    ==(Variables)==
+    ..(Editor)..
+    + Color: LinearColor
+    + Title: Text
+    + Explanation_Text: Text
+    ..(BP)..
+    + Triggered: Bool
+    + Completed: Bool
+    + Progress_Widget: UserWidget
+
+    - {abstract} Progress_Widget_Class: *UserWidget
+    ==(Events)==
+    ~ {abstract} Event BeginPlay()
+    # {abstract} Event ActorBeginOverlap()
+    # {abstract} Event ActorEndOverlap()
+    # {Abstract} Complete_Module()->Module_Sequencer
+    ==(Functions)==
+    - Create_Progress_Widget(): Void
+    - {abstract} Set_Progress_Text(Text): Void
+    - {abstract} Set_Progress_Value(Float): Void
+    ==(Viewport)==
+    + Cube: StaticMesh
+    + |  Box: Box Collision
+}
+
+Class Trigger_Module <<(M,#FF7700) Base_Module>> extends Base_Module
+{
+    ==(Variables)==
+    ..(BP)..
+    - Progress_Widget_Class: Progress_Widget_Text
+    ==(Events)==
+    ~ Event BeginPlay()
+    # Event ActorBeginOverlap()
+    # Event ActorEndOverlap()
+}
+
+Class Hover_Module <<(M,#FF7700) Base_Module>> extends Base_Module
+{
+    ==(Variables)==
+    ..(Editor)..
+    + HoverTime: Float
+    ..(BP)..
+    - Timer_Handle: Timer_Handle
+    - Progress_Widget_Class: Progress_Widget_Text
+    ==(Events)==
+    ~ Event BeginPlay()
+    ~ Event Tick()
+    # Event ActorBeginOverlap()
+    # Event ActorEndOverlap()
+    ==(Viewport)==
+    + Hover_Text: TextRenderComponent
+}
+
+Class Turn_Module <<(M,#FF7700) Base_Module>> extends Base_Module
+{
+    ==(Variables)==
+    ..(BP)..
+    - Progress_Widget_Class: Progress_Widget_Text
+    ==(Events)==
+    ~ Event BeginPlay()
+    ~ Event Tick()
+    # Event ActorBeginOverlap()
+    # Event ActorEndOverlap()
+    ==(Viewport)==
+    + Arrow: Arrow Component
+}
+
+Class Encircle_Module <<(M,#FF7700) Base_Module>> extends Base_Module
+{
+    ==(Variables)==
+    ..(Editor)..
+    + Accuracy: Int
+    ..(BP)..
+    - Progress: Float
+    - Completed_Rotation: Array<Bool>
+    - Progress_Widget_Class: Progress_Widget_Text
+    ==(Events)==
+    ~ Event BeginPlay()
+    ~ Event Tick()
+    # Event ActorBeginOverlap()
+    # Event ActorEndOverlap()
+    ==(Viewport)==
+    + Arrow: Arrow Component
+}
+
+Class Landing_Module <<(M,#FF7700) Base_Module>> extends Base_Module
+{
+    ==(Variables)==
+    ..(Editor)..
+    + MaxLandingSpeed: Float
+    ..(BP)..
+    - ExceededLandingSpeed: Bool
+    - Progress_Widget_Class: Progress_Widget_Text
+    ==(Events)==
+    ~ Event BeginPlay()
+    ~ Event Tick()
+    # Event ActorBeginOverlap()
+    # Event ActorEndOverlap()
+    ==(Viewport)==
+    + Arrow: Arrow Component
+}
+
+
+' ===============================================
+
+' (Class Setup template)=========================
+
+' ==(Variables)==
+
+' ..(Editor)..
+
+' ..(BP)..
+
+' ==(Events)==
+' ~ Event Tick()
+' ~ Event BeginPlay()
+' ..(KeyEvents)..
+
+' ==(Functions)==
+
+' ..(Functional)..
+
+' ..(Debug)..
+
+' ==(Viewport)==
+
+' ===============================================
+
+' (Connections)==================================
+
+Module_Sequencer "1" *-left- "1..*" ModuleOrder : contains
+Module_Sequencer::Level_State "1" o-- "1" Level_State : contains
+
+
+
+
+Drone_Class -right- PID_Function_Library: Uses
+Drone_Class "1" *-left- "1"DroneHUD_BP: Contains
+DroneHUD_BP "1" -left- "1" Module_Sequencer: Accesses
+Drone_Class "1" -left-o "1" Module_Sequencer: Contains
+
+' ===============================================
+
+
+@enduml

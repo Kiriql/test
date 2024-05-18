@@ -1,0 +1,128 @@
+@startuml Drone Activity
+title Drone_Class activity diagram
+skinparam ActivityBackgroundColor lightyellow
+
+
+
+partition Legenda {
+    #OrangeRed:Event>
+    detach
+    #YellowGreen:Bind Event>
+    detach
+}
+
+start
+
+partition Begin Play {
+    #OrangeRed:Begin Play>
+    fork
+        :Hide Actor
+        on mini-map;
+    fork again
+        :Enable Drone_HUD;
+        :Set Starting
+        PID Setpoints;
+        :Fix Center of Mass
+        by setting it to the
+        Up Arrow Position;
+        :Set TPV Camera to locked;
+
+    end fork
+}
+
+fork
+
+    partition Event Tick {
+        #OrangeRed:Event Tick>
+        fork
+            :Get Throttle input
+            for new PID Setpoint;
+            :Thrust Controller adds force
+            based on PID results;
+        fork again
+            :Get Pitch input
+            for new PID Setpoint;
+            :Pitch Controller adds force
+            based on PID results;
+        fork again
+            :Get Roll input
+            for new PID Setpoint;
+            :Roll Controller adds force
+            based on PID results;
+        fork again
+            :Get Yaw input
+            for new PID Setpoint;
+            :Roll Controller adds force
+            based on PID results;
+        end fork
+        :Set Public speed and height variables;
+        :Set UI joystick positions;
+        if (In FPV mode) then (Yes)
+            :Generate Detection rings in viewport if object is to close;
+        else (No)
+
+        endif
+
+        if (Debug Manualy Enabled?) then (Yes)
+            :Draw Debug Statistics
+            Draw Debug Arrows towards closest hit locations;
+        else (No)
+
+        endif
+
+    }
+
+fork again
+
+    partition Custom Events {
+        :Wait for events;
+        fork
+            #OrangeRed:Menu Button>
+            :Create Pause_HUD
+            if not already exists;
+            if (Pause menu active?
+            & game is paused?) then (True)
+            :Remove Pause Menu
+            from viewport;
+            :Unpause game;
+            :Set input mode Game only;
+            detach
+            elseif (Pause menu not active
+            & game is not paused?) then (True)
+            :Add Pause menu
+            to viewport;
+            :Pause game;
+            :Set input mode Game and UI;
+            detach
+            else (False)
+            :Do Nothing;
+            kill
+        endif
+    fork again
+        #OrangeRed:Restart Button>
+        : Execute console
+        command(RestartLevel);
+        end
+    fork again
+        #OrangeRed:Switch Camera Button>
+        :NextCam++;
+        :Set Active Camera to
+        Camera_Array[NextCam%lengthArray];
+        detach
+    fork again
+        #OrangeRed:Minimap Buttons>
+        if (Zoom button pressed?) then (-)
+            :Mini-map Ortho
+            width +100;
+        else (+)
+            :Mini-map Ortho width
+            -100 if ortho width
+            is bigger than 200;
+            endif
+            detach
+        end fork
+    }
+end fork
+
+stop
+@enduml

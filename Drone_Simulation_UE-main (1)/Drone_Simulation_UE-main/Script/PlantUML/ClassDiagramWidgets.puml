@@ -1,0 +1,354 @@
+@startuml Klasse Diagram (Widgets)
+title Klasse Diagram (Widgets)
+skinparam TitleFontName Calibri
+skinparam TitleFontSize 40
+skinparam ClassBackgroundColor lightcyan/LightGoldenRodYellow
+skinparam defaultFontColor black
+
+' (Message Widgets)==============================
+' (Widgets)======================================
+
+class Progress_Widget_Text <<UserWidget>>
+{
+    + ProgressText: TextBlock
+}
+
+class Progress_Widget_Bar <<UserWidget>>
+{
+    + ProgressBar: ProgressBar
+}
+
+
+class DroneHUD_BP <<UserWidget>>
+{
+    ==(Variables)==
+    ..(Editor)..
+    + CompletedModules: TextBlock
+    + DroneDirection: Image
+    + Explanation_Text: TextBlock
+    + HitText: TextBlock
+    + InputCircleL: Image
+    + InputCircleR: Image
+    + MiniMap: Image
+    + MiniMapOutline: Image
+    + ModuleCompass: Image
+    + ModuleProgressSlot: NamedSlot
+    + NextModule: TextBlock
+    + Timer: TextBlock
+    ..(BP)..
+    + Tiltbar: Image
+    - Module_Sequencer: Module Sequencer
+    ==(Events)==
+    ~ Event BeginPlay()
+    ~ Event Tick()
+    ..
+    # InputAction HideUI()
+    ==(Functions)==
+    + Set_Next_Module_Text(Modulename:Text): Void
+    + Set_Explanation_Text(Explanation Text:Text): Void
+    + Set_Completed_Modules_Text(Completed:Int, Total:Int): Void
+    ..
+    + Set_Module_Progress_Widget(ProgressWidget: UserWidget): Void
+    + Set_Compass_Rotation(Rotation:Float,Visible:Bool): Void
+    ..(Binded)..
+    - Set_VSpeedValue_Text(): Text
+    - Set_HSpeedValue_Text(): Text
+    - Set_HeightValue_Text(): Text
+    ..
+    - Get_Hit_Text(): Text
+    - Get_Time_Left_Text(): Text
+}
+
+
+
+class PauseMenu <<UserWidget>>
+{
+    ==(Variables)==
+    ..(BP)..
+    - Drone ref: Drone_Class
+    ==(Events)==
+    ~ Event Tick()
+    ~ Event BeginPlay()
+    ..
+    # Validate Change_Event()
+    ..
+    # On Clicked (ResumeButton)
+    # On Clicked (QuitButton)
+    # On Clicked (RestartButton)
+    ..
+    # On Text Commited (MaxThrustBox)
+    # On Text Commited (MaxAscendSpeedBox)
+    # On Text Commited (MaxDescendSpeedBox)
+    # On Text Commited (MaxTiltAngleBox)
+    # On Text Commited (MaxYawSpeedBox)
+    ..
+    # On Text Commited (PIDAltitudeBox_P)
+    # On Text Commited (PIDAltitudeBox_I)
+    # On Text Commited (PIDAltitudeBox_D)
+    # On Text Commited (PIDPitchRoll_P)
+    # On Text Commited (PIDPitchRoll_I)
+    # On Text Commited (PIDPitchRoll_D)
+    # On Text Commited (PIDYaw_P)
+    # On Text Commited (PIDYaw_I)
+    # On Text Commited (PIDYaw_D)
+    ..
+    # On Value Changed (FPVCameraRotationLagSlider)
+    # On Value Changed (FPVFOVSlider)
+    # On Value Changed (TPVCameraDistanceSlider)
+    # On Value Changed (TPVCameraLagSlider)
+    # On Value Changed (TPVFOVSlider)
+    # On Value Changed (MiniMapSizeSlider)
+    ==(Functions)==
+    ..(Functional)..
+    - Remove Menu(): Void
+    - Text to Float(Text): Float
+    - Set all Values(): Void
+    - Set BoxText Float(TextBox,Float): Void
+    ==(Viewport)==
+    - FPVCameraRotationLagSlider: Slider
+    - FPVFOVSlider: Slider
+    - TPVCameraDistanceSlider: Slider
+    - TPVCameraLagSlider: Slider
+    - TPVFOVSlider: Slider
+    - MiniMapSizeSlider: Slider
+    ..
+    - MaxThrustBox: TextBox
+    - MaxAscendSpeedBox: TextBox
+    - MaxDescendSpeedBox: TextBox
+    - MaxYawSpeedBox: TextBox
+    - MaxTiltAngleBox: TextBox
+    ..
+    - PIDAltitudeBox_P: TextBox
+    - PIDAltitudeBox_I: TextBox
+    - PIDAltitudeBox_D: TextBox
+    ..
+    - PIDPitchRoll_P: TextBox
+    - PIDPitchRoll_I: TextBox
+    - PIDPitchRoll_D: TextBox
+    ..
+    - PIDYaw_P: TextBox
+    - PIDYaw_I: TextBox
+    - PIDYaw_D: TextBox
+    ..
+    - QuitButton: Button
+    - RestartButton: Button
+    - ResumeButton: Button
+    ..
+    - Validationmark: Image
+}
+
+class HUD_Detection_Ring <<UserWidget>>
+{
+    ==(Variables)==
+    ..(Spawn)..
+    - Target: Vector
+    ==(Events)==
+    ~ Event Construct()
+    ==(Viewport)==
+    - Detection_icon: Image
+}
+
+
+Class StartMessage_Widget <<UserWidget>>
+{
+    ==(Variables)==
+    ..(Spawn)..
+    + MessageStruct: Message_Structure
+    ==(Events)==
+    # On Clicked (ResumeButton) -> ClosedMessage()
+    ..(KeyEvents)..
+    # Enter Key() -> ClosedMessage()
+    ..(Event Dispatchers)..
+    + ClosedMessage()
+    ==(Viewport)==
+    - ImageScaleBox: ScaleBox
+    - Message: TextBlock
+    - MessageImage: Image
+    - MessageTitle: TextBlock
+    - ResumeButton: Button
+    - TextSizeBox: SizeBox
+}
+
+Class RestartMessage_Widget <<UserWidget>>
+{
+    ==(Variables)==
+    ..(Spawn)..
+    + MessageStruct: Message_Structure
+    ==(Events)==
+    # On Clicked (RestartButton) -> ClosedMessage()
+    # On Clicked (QuitButton) -> ClosedMessage()
+    ..(KeyEvents)..
+    # Enter Key() -> ClosedMessage()
+    # Backspace Key() -> ClosedMessage()
+    ..(Event Dispatchers)..
+    + ClosedMessage()
+    ==(Viewport)==
+    - ImageScaleBox: ScaleBox
+    - Message: TextBlock
+    - MessageImage: Image
+    - MessageTitle: TextBlock
+    - QuitButton: Button
+    - RestartButton: Button
+    - TextSizeBox: SizeBox
+}
+
+Class CompleteLevelMessage_Widget <<UserWidget>>
+{
+    ==(Variables)==
+    ..(Spawn)..
+    + MessageStruct: Message_Structure
+    ==(Events)==
+    # On Clicked (RestartButton) -> ClosedMessage()
+    # On Clicked (QuitButton) -> ClosedMessage()
+    ..(KeyEvents)..
+    # Enter Key() -> ClosedMessage()
+    # Backspace Key() -> ClosedMessage()
+    ..(Event Dispatchers)..
+    + ClosedMessage()
+    ==(Viewport)==
+    - ImageScaleBox: ScaleBox
+    - Message: TextBlock
+    - MessageImage: Image
+    - MessageTitle: TextBlock
+    - QuitButton: Button
+    - RestartButton: Button
+    - TextSizeBox: SizeBox
+}
+
+Class TutorialMessage_Widget <<UserWidget>>
+{
+    ==(Variables)==
+    ..(Spawn)..
+    + MessageStruct: Message_Structure
+    ==(Events)==
+    # On Clicked (ResumeButton)
+    ..(KeyEvents)..
+    # Enter Key()
+    ==(Viewport)==
+    - Message: TextBlock
+    - TutorialImage: Image
+    - TutorialTitle: TextBlock
+    - ResumeButton: Button
+}
+
+
+' (UI Widgets)===================================
+class MainMenu <<UserWidget>>
+{
+    ==(Events)==
+    ~ Event Construct()
+    ..(Tabs)..
+    # On Clicked (PlayTabButton)
+    # On Clicked (SettingsTabButton)
+    # On Clicked (ExtraTabButton)
+    # On Clicked (QuitTabButton)
+    ..(Play)..
+    # On Clicked (OptionsMenuButton)
+    # On Clicked (LevelSelectionButton)
+    # Open Level (Level Name:Name, Training Index:Int)
+    ..(Binded)..
+    # LevelPreviewClicked(Level Name: text,Training Index:Int)
+    ..(Settings)..
+    # On Clicked (1920res)
+    # On Clicked (1290res)
+    # On Clicked (640res)
+    ..
+    # On Clicked (FullScreen)
+    # On Clicked (WindowedFullScreen)
+    # On Clicked (Windowed)
+    ..
+    # Resolution Change_Event()
+    ..(Extra)..
+    # On Clicked (Extra_1)
+    # On Clicked (Extra_2)
+    # On Clicked (Extra_3)
+    ==(Functions)==
+    ..(Functional)..
+    - Text To Name(text): Name
+    - Get Level Options(Training Index:Int): String
+    ==(Viewport)==
+    - WidgetSwitcher_0: Widget Switcher
+    + LevelPreview_Widgets: List<LevelPreview_Widget>
+    ..(Options)..
+    - ModuleCheckbox: CheckBox
+    - DifficultySelectionBox: ComboBox
+    - HitsSlider: SpinBox
+}
+
+class LevelPreview_Widget <<UserWidget>>
+{
+    ==(Variables)==
+    ..(Editor)..
+    + Level Name Text
+    + Training Index: Int
+    + Preview Image: Image
+    + Tooltip Title & Widget Title: Text
+    + Tooltip Mission Text: Text
+    + Difficuly: Int{1-5}
+    + Time: Int
+    ..(BP)..
+    - Tooltip: Level Tooltip Widget
+    ==(Events)==
+    ~ Event Pre Construct
+    ..
+    # On Clicked (Info)
+    # On Clicked (LevelButton)->LevelPreviewClicked()
+    ==(Function)==
+    - Get_LevelButton_TooltipWidget():Widget
+    ==(Viewport)==
+    - Info: Button
+    - LevelButton: Button
+    - LevelName: TextBlock
+    - Level Preview Image: Texture
+}
+
+class LevelTooltip_Widget <<UserWidget>>
+{
+    ==(Variables)==
+    ..(Spawn)..
+    + Tooltip Title: Text
+    + Mission Text: Text
+    + Difficuly: Int
+    + Time: Int
+    ..(BP)..
+    + LocDiff: Vector 2D
+    ==(Events)==
+    ~ Event Construct
+    ..
+    # On Clicked (Close)
+    # On Pressed (WidgetBar)
+    # On Released (WidgetBar)
+    ..
+    - Stop Location Update()
+    - Update Widget Location()
+    ==(Viewport)==
+    - Close: Button
+    - DifficultyLevel: Throbber
+    - MissionText: TextBlock
+    - TimeText: TextBlock
+    - TooltipTitleText: TextBlock
+    - WidgetBar: Button
+    - Widgetpanel: Canvas Panel
+}
+
+Drone_Class "1" *-- "0..*" HUD_Detection_Ring: spawns
+Drone_Class "1" *-- "1" PauseMenu: Uses
+Drone_Class "1" *-left- "1" DroneHUD_BP: Contains
+Drone_Class "1" -left-o "1" Module_Sequencer: Contains
+
+DroneHUD_BP "1" <--o "1" Module_Sequencer: Accesses
+
+Progress_Widget_Bar "0..1" --* "1" Base_Module: Contains
+Progress_Widget_Text "0..1" --* "1" Base_Module: Contains
+
+Module_Sequencer "1" *-- "1..*" StartMessage_Widget: Uses
+Module_Sequencer "1" *-- "1" RestartMessage_Widget: Uses
+Module_Sequencer "1" *-- "1" CompleteLevelMessage_Widget: Uses
+Module_Sequencer "1" *-- "1" TutorialMessage_Widget: Uses
+
+
+MainMenu "1" *-- "1..*" LevelPreview_Widget: Contains
+LevelPreview_Widget "1" *-- "1" LevelTooltip_Widget: Contains
+
+
+@enduml

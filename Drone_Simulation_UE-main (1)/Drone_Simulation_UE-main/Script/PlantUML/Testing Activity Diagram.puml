@@ -1,0 +1,45 @@
+@startuml
+title Testing activity diagram
+skinparam ActivityBackgroundColor lightyellow
+
+
+
+partition Legenda {
+    #OrangeRed:Event>
+    detach
+    #YellowGreen:Bind Event>
+    detach
+}
+
+start
+
+partition first and second {
+    :first;
+    :second with
+    several **Lines**;
+}
+
+
+partition conditions {
+    if (Condity?) then (yes)
+        :lefty;
+    else (condity)
+        :righty;
+        -> To the wutto with big text;
+        :wutto;
+    endif
+    #OrangeRed:Event>
+}
+
+partition splits{
+    :wut;
+    -> most right;
+    split
+        :splitty;
+    split again
+        :Splotty;
+    end split
+}
+
+stop
+@enduml

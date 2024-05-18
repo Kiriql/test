@@ -1,0 +1,159 @@
+@startuml
+title Module Sequencer activity diagram
+skinparam ActivityBackgroundColor lightyellow
+
+
+partition Legenda {
+    #OrangeRed:Event>
+    detach
+    #YellowGreen:Bind Event>
+    detach
+}
+
+start
+
+#OrangeRed:Begin Play>
+
+:Parse Level Options;
+
+partition Begin Play actions {
+    fork
+        :Get module order
+        list with parsed
+        training index;
+
+        :Get start message
+        from module order list;
+        fork
+            :Remove unnecessary
+            modules for other
+            training indexes;
+            detach
+        fork again
+            if (Modules Active?) then (True)
+                :Bind Complete Module
+                events to Module Sequencer
+                check modules event;
+                detach
+            else (False)
+                :Set Difficulty
+                to Free Flight;
+                detach
+            endif
+
+        end fork
+
+    fork again
+        :Get Drone_Class
+        from Player Pawn;
+        if (Max Hits > -1) then (True)
+            :Bind Drone_Class
+            On Actor Hit event
+            to module sequencer
+            OnDroneHit Event;
+            :Set Hit Delay;
+        else (False)
+            :Hide Hit Counter;
+        endif
+        detach
+
+    fork again
+        #lightBlue:Delay until next tick;
+        fork
+            :Set Module completion
+            UI and Call Check
+            Modules Event;
+        fork again
+            :Set Level Timer
+            based on Difficulty
+            to call timer ended
+            event when Complete;
+            :Pause Timer;
+        fork again
+            :Call Open Start Message;
+            #OrangeRed:Open Start Message>
+            :Create Start message widget
+            Pause Game;
+            :Stop Loading Screen;
+            :<&clock> Wait until start button is clicked;
+            :Unpause game;
+        end fork
+    end fork
+}
+
+repeat
+
+    fork
+    partition Tick Event {
+    #orangered:Event Tick>
+    :Set compass rotation 
+    to current module;
+    }
+    
+   
+    fork again
+    partition Custom Events {
+    
+    :<&clock> Wait for events;
+        ' check modules
+        fork
+            #YellowGreen:Check Modules>
+            :Count Completed modules
+            And Update Counter Text;
+            :Set new current module;
+
+            if (Is level completed?) then (True)
+                :Set Completed Level UI;
+                #OrangeRed:Level Complete>
+                :Create Level Complete Message;
+                :Pause Game;
+                end
+            else (False)
+                :Set UI Elements to currrent module;
+                if (Current module has tutorial?) then (True)
+                    :Create Tutorial Message
+                    and Pause Game;
+                    :<&clock> Wait for resume;
+                endif
+            endif
+        ' On Drone Hit
+        fork again
+            #YellowGreen:OnDroneHit>
+
+            if (Inside Landing Zone?) then (True)
+                :Block Hits;
+                kill
+            else (False)
+                if (Hit Delay Active?) then (True)
+                    :Wait for delay
+                    until hit can
+                    be counted again;
+                    kill
+                else (False)
+                    if (hits > Max Hits) then (True)
+                        :Create restart message;
+                        :Pause Game;
+                        end
+                    else (False)
+                        :hits +1
+                        activate delay;
+                        kill
+                    endif
+                endif
+            endif
+
+        'Timer Ended 
+        fork again
+            #OrangeRed:TimerEnded>
+            :Set UI Timer Ended Text;
+            :Create Restart Message;
+            :Pause Game;
+            end
+        end fork
+    }
+
+     end fork
+
+
+
+    @enduml
